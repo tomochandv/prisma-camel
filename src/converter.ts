@@ -148,13 +148,40 @@ export function convertPrismaSchema(schema: string): string {
       }
     }
 
+    // @@index, @@unique 등 모델 속성 내 필드 참조 변환
+    if (currentBlock === 'model' && /^\s+@@(index|unique|id)/.test(line)) {
+      // @@index([mobile_hash], ...) 같은 패턴에서 필드명 변환
+      line = line.replace(/\[([^\]]+)\]/g, (_match, fields) => {
+        // 쉼표로 구분된 필드들 변환
+        const convertedFields = fields
+          .split(',')
+          .map((field: string) => {
+            const trimmed = field.trim()
+            if (isSnakeCase(trimmed)) {
+              return toCamelCase(trimmed)
+            }
+            return field
+          })
+          .join(',')
+        return `[${convertedFields}]`
+      })
+    }
+
     // 필드 이름 변환 (model, type 블록 내에서만)
     const fieldMatch = line.match(/^(\s+)([a-zA-Z_][a-zA-Z0-9_]*)(\s+.*)$/)
     if (fieldMatch && (currentBlock === 'model' || currentBlock === 'type')) {
       const [, indent, fieldName, rest] = fieldMatch
 
-      // @relation이 있는지 확인 (관계 필드는 @map 추가 안함)
-      const isRelationField = rest.includes('@relation')
+      // Prisma 스칼라 타입인지 확인 (스칼라 타입이 아니면 관계 필드)
+      // https://www.prisma.io/docs/orm/reference/prisma-schema-reference#model-field-scalar-types
+      const scalarTypes = ['String', 'Boolean', 'Int', 'BigInt', 'Float', 'Decimal', 'DateTime', 'Json', 'Bytes', 'Unsupported']
+
+      // 타입 추출: "Type", "Type?", "Type[]" 형태에서 Type 부분만
+      const typeMatch = rest.match(/^\s+([A-Z][a-zA-Z0-9_]*)[?[\]]?/)
+      const fieldType = typeMatch ? typeMatch[1] : null
+
+      // 스칼라 타입이 아니면 관계 필드
+      const isRelationField = fieldType ? !scalarTypes.includes(fieldType) : false
 
       if (isSnakeCase(fieldName)) {
         // @map 속성이 이미 있는지 확인
