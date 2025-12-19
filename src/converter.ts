@@ -98,18 +98,28 @@ export function convertPrismaSchema(schema: string): string {
     const fieldMatch = line.match(/^(\s+)([a-zA-Z_][a-zA-Z0-9_]*)(\s+.*)$/)
     if (fieldMatch && (currentBlock === 'model' || currentBlock === 'type')) {
       const [, indent, fieldName, rest] = fieldMatch
+
+      // @relation이 있는지 확인 (관계 필드는 @map 추가 안함)
+      const isRelationField = rest.includes('@relation')
+
       if (isSnakeCase(fieldName)) {
         // @map 속성이 이미 있는지 확인
         if (!rest.includes('@map(')) {
           // @map() 밖의 타입 참조만 변환
           const convertedRest = convertRestExcludingMapContent(rest)
 
-          // @map 추가하여 원래 이름 유지
-          const hasComment = convertedRest.includes('//')
-          const restWithoutComment = hasComment ? convertedRest.substring(0, convertedRest.indexOf('//')) : convertedRest
-          const comment = hasComment ? ' ' + convertedRest.substring(convertedRest.indexOf('//')).trim() : ''
+          // 관계 필드가 아닌 경우에만 @map 추가
+          if (!isRelationField) {
+            // @map 추가하여 원래 이름 유지
+            const hasComment = convertedRest.includes('//')
+            const restWithoutComment = hasComment ? convertedRest.substring(0, convertedRest.indexOf('//')) : convertedRest
+            const comment = hasComment ? ' ' + convertedRest.substring(convertedRest.indexOf('//')).trim() : ''
 
-          line = `${indent}${toCamelCase(fieldName)}${restWithoutComment.trimEnd()} @map("${fieldName}")${comment}`
+            line = `${indent}${toCamelCase(fieldName)}${restWithoutComment.trimEnd()} @map("${fieldName}")${comment}`
+          } else {
+            // 관계 필드는 필드명만 변환
+            line = `${indent}${toCamelCase(fieldName)}${convertedRest}`
+          }
           convertedLines.push(line)
           continue
         } else {
