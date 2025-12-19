@@ -7,26 +7,26 @@ export { convertPrismaSchema } from './converter'
 export { toCamelCase, isSnakeCase } from './utils'
 
 /**
- * CLI 실행 함수
+ * CLI execution function
  */
 function main() {
   const args = process.argv.slice(2)
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log(`
-prisma-camel - Prisma 스키마의 snake_case를 camelCase로 변환
+🐫 prisma-camel - Convert Prisma schema from snake_case to camelCase
 
-사용법:
-  npx @tomochanshim/prisma-camel <schema-file> [output-file]
-  npx @tomochanshim/prisma-camel --help
+Usage:
+  npx @tomochandv/prisma-camel <schema-file> [output-file]
+  npx @tomochandv/prisma-camel --help
 
-인수:
-  <schema-file>   변환할 Prisma 스키마 파일 경로
-  [output-file]   출력 파일 경로 (선택사항, 기본값: 원본 파일 덮어쓰기)
+Arguments:
+  <schema-file>   Path to the Prisma schema file to convert
+  [output-file]   Output file path (optional, defaults to overwriting the original file)
 
-예시:
-  npx @tomochanshim/prisma-camel schema.prisma
-  npx @tomochanshim/prisma-camel schema.prisma schema-camel.prisma
+Examples:
+  npx @tomochandv/prisma-camel schema.prisma
+  npx @tomochandv/prisma-camel schema.prisma schema-camel.prisma
 `)
     process.exit(0)
   }
@@ -34,25 +34,33 @@ prisma-camel - Prisma 스키마의 snake_case를 camelCase로 변환
   const inputFile = args[0]
   const outputFile = args[1] || inputFile
 
-  // 입력 파일 존재 확인
+  // Check if input file exists
   if (!fs.existsSync(inputFile)) {
-    console.error(`오류: 파일을 찾을 수 없습니다: ${inputFile}`)
+    console.error(`\n❌ Error: File not found: ${inputFile}\n`)
     process.exit(1)
   }
 
   try {
-    // 스키마 파일 읽기
+    console.log('\n🐫 prisma-camel\n')
+    console.log(`📖 Reading schema file: ${inputFile}`)
+
+    // Read schema file
     const schema = fs.readFileSync(inputFile, 'utf-8')
 
-    // 변환
+    console.log('🔄 Converting snake_case to camelCase...')
+
+    // Convert
     const converted = convertPrismaSchema(schema)
 
-    // 결과 저장
+    console.log(`💾 Writing to: ${outputFile}`)
+
+    // Save result
     fs.writeFileSync(outputFile, converted, 'utf-8')
 
-    console.log(`✓ 변환 완료: ${outputFile}`)
+    console.log('\n✨ Success! Schema converted successfully!\n')
   } catch (error) {
-    console.error('오류 발생:', error)
+    console.error('\n❌ Error occurred:', error)
+    console.error()
     process.exit(1)
   }
 }
