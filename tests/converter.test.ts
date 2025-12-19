@@ -128,6 +128,30 @@ model blogPost {
       expect(convertPrismaSchema(input)).toBe(expected)
     })
 
+    it('should not add @map to relation fields', () => {
+      const input = `model User {
+  user_idx Int @id
+  user_info UserInfo @relation(fields: [user_idx], references: [userIdx])
+}`
+      const expected = `model User {
+  userIdx Int @id @map("user_idx")
+  userInfo UserInfo @relation(fields: [userIdx], references: [userIdx])
+}`
+      expect(convertPrismaSchema(input)).toBe(expected)
+    })
+
+    it('should handle complex relation with map parameter', () => {
+      const input = `model UserBrowserFingerprint {
+  user_idx Int
+  user_info UserInfo @relation(fields: [user_idx], references: [userIdx], onUpdate: Restrict, map: "FK_user_browser_fingerprint_user_idx_user_info_user_idx")
+}`
+      const expected = `model UserBrowserFingerprint {
+  userIdx Int @map("user_idx")
+  userInfo UserInfo @relation(fields: [userIdx], references: [userIdx], onUpdate: Restrict, map: "FK_user_browser_fingerprint_user_idx_user_info_user_idx")
+}`
+      expect(convertPrismaSchema(input)).toBe(expected)
+    })
+
     it('should convert field types and relation references', () => {
       const input = `model blog_post {
   author_id Int
