@@ -1,6 +1,6 @@
 {
   "name": "@tomochandv/prisma-camel",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "Convert Prisma schema snake_case to camelCase",
   "license": "MIT",
   "author": "tomochandv",
