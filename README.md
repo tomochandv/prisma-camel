@@ -22,19 +22,19 @@
 ### Global Installation
 
 ```bash
-npm install -g @tomochanshim/prisma-camel
+npm install -g @tomochandv/prisma-camel
 ```
 
 ### Project Installation (Recommended)
 
 ```bash
-npm install -D @tomochanshim/prisma-camel
+npm install -D @tomochandv/prisma-camel
 ```
 
 ### Or use with npx (No installation)
 
 ```bash
-npx @tomochanshim/prisma-camel
+npx @tomochandv/prisma-camel
 ```
 
 ## 🚀 Usage
@@ -49,7 +49,7 @@ prisma-camel schema.prisma
 prisma-camel schema.prisma schema-camel.prisma
 
 # Using npx
-npx @tomochanshim/prisma-camel schema.prisma
+npx @tomochandv/prisma-camel schema.prisma
 
 # With npm scripts (after installing as dev dependency)
 npm run prisma-camel schema.prisma
@@ -74,7 +74,7 @@ npm run convert-schema
 ### Programmatic Usage
 
 ```typescript
-import { convertPrismaSchema } from '@tomochanshim/prisma-camel'
+import { convertPrismaSchema } from '@tomochandv/prisma-camel'
 
 const schema = `
 model user_profile {
@@ -233,7 +233,7 @@ npm run build
 
 ## 📄 License
 
-MIT © tomochsn shim
+MIT © tomochandv
 
 ## 🤝 Contributing
 
@@ -241,8 +241,8 @@ Issues and pull requests are always welcome!
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/tomochanshim/prisma-camel)
-- [npm Package](https://www.npmjs.com/package/@tomochanshim/prisma-camel)
+- [GitHub Repository](https://github.com/tomochandv/prisma-camel)
+- [npm Package](https://www.npmjs.com/package/@tomochandv/prisma-camel)
 
 ---
 
@@ -266,19 +266,19 @@ Issues and pull requests are always welcome!
 ### 전역 설치
 
 ```bash
-npm install -g @tomochanshim/prisma-camel
+npm install -g @tomochandv/prisma-camel
 ```
 
 ### 프로젝트 설치 (권장)
 
 ```bash
-npm install -D @tomochanshim/prisma-camel
+npm install -D @tomochandv/prisma-camel
 ```
 
 ### npx로 설치 없이 사용
 
 ```bash
-npx @tomochanshim/prisma-camel
+npx @tomochandv/prisma-camel
 ```
 
 ## 🚀 사용법
@@ -293,7 +293,7 @@ prisma-camel schema.prisma
 prisma-camel schema.prisma schema-camel.prisma
 
 # npx 사용
-npx @tomochanshim/prisma-camel schema.prisma
+npx @tomochandv/prisma-camel schema.prisma
 
 # npm scripts 사용 (dev dependency로 설치 후)
 npm run prisma-camel schema.prisma
@@ -318,7 +318,7 @@ npm run convert-schema
 ### 프로그래밍 방식 사용
 
 ```typescript
-import { convertPrismaSchema } from '@tomochanshim/prisma-camel'
+import { convertPrismaSchema } from '@tomochandv/prisma-camel'
 
 const schema = `
 model user_profile {
@@ -401,7 +401,7 @@ npm run build
 
 ## 📄 라이선스
 
-MIT © tomochsn shim
+MIT © tomochandv
 
 ## 🤝 기여
 
@@ -409,5 +409,5 @@ MIT © tomochsn shim
 
 ## 🔗 링크
 
-- [GitHub 저장소](https://github.com/tomochanshim/prisma-camel)
-- [npm 패키지](https://www.npmjs.com/package/@tomochanshim/prisma-camel)
+- [GitHub 저장소](https://github.com/tomochandv/prisma-camel)
+- [npm 패키지](https://www.npmjs.com/package/@tomochandv/prisma-camel)
