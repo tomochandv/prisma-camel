@@ -1,6 +1,34 @@
 import { toCamelCase, isSnakeCase } from './utils'
 
 /**
+ * @map() 안의 내용은 제외하고 나머지 부분의 snake_case를 camelCase로 변환
+ */
+function convertRestExcludingMapContent(rest: string): string {
+  // @map("...") 부분을 찾아서 보호
+  const mapRegex = /@map\s*\(\s*"[^"]*"\s*\)/g
+  const mapMatches: string[] = []
+  let result = rest.replace(mapRegex, match => {
+    mapMatches.push(match)
+    return `__MAP_PLACEHOLDER_${mapMatches.length - 1}__`
+  })
+
+  // @map() 밖의 snake_case를 camelCase로 변환
+  result = result.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, match => {
+    if (isSnakeCase(match)) {
+      return toCamelCase(match)
+    }
+    return match
+  })
+
+  // @map() 부분 복원
+  mapMatches.forEach((mapContent, index) => {
+    result = result.replace(`__MAP_PLACEHOLDER_${index}__`, mapContent)
+  })
+
+  return result
+}
+
+/**
  * Prisma 스키마 파일의 snake_case를 camelCase로 변환
  */
 export function convertPrismaSchema(schema: string): string {
@@ -73,13 +101,8 @@ export function convertPrismaSchema(schema: string): string {
       if (isSnakeCase(fieldName)) {
         // @map 속성이 이미 있는지 확인
         if (!rest.includes('@map(')) {
-          // 타입 참조 먼저 변환 (rest 부분에서)
-          const convertedRest = rest.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, match => {
-            if (isSnakeCase(match)) {
-              return toCamelCase(match)
-            }
-            return match
-          })
+          // @map() 밖의 타입 참조만 변환
+          const convertedRest = convertRestExcludingMapContent(rest)
 
           // @map 추가하여 원래 이름 유지
           const hasComment = convertedRest.includes('//')
@@ -90,23 +113,15 @@ export function convertPrismaSchema(schema: string): string {
           convertedLines.push(line)
           continue
         } else {
-          // 이미 @map이 있으면 필드 이름만 변환하고 타입 참조도 변환
-          const convertedRest = rest.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, match => {
-            // @map 안의 값은 변환하지 않음
-            return match
-          })
+          // 이미 @map이 있으면 필드 이름만 camelCase로 변환, @map() 안은 그대로 유지
+          const convertedRest = convertRestExcludingMapContent(rest)
           line = `${indent}${toCamelCase(fieldName)}${convertedRest}`
           convertedLines.push(line)
           continue
         }
       } else if (currentBlock === 'model') {
-        // 필드 이름은 snake_case가 아니지만 타입 참조는 변환
-        line = line.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, match => {
-          if (isSnakeCase(match)) {
-            return toCamelCase(match)
-          }
-          return match
-        })
+        // 필드 이름은 camelCase지만 타입 참조는 변환 (@map 안 제외)
+        line = `${indent}${fieldName}${convertRestExcludingMapContent(rest)}`
       }
     }
 

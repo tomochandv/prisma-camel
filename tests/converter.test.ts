@@ -73,6 +73,27 @@ model blogPost {
       expect(convertPrismaSchema(input)).toBe(expected)
     })
 
+    it('should not convert snake_case inside @map()', () => {
+      const input = `model User {
+  user_name String @map("user_name")
+  email_address String @unique @map("email_address")
+}`
+      const expected = `model User {
+  userName String @map("user_name")
+  emailAddress String @unique @map("email_address")
+}`
+      expect(convertPrismaSchema(input)).toBe(expected)
+    })
+
+    it('should handle fields with @map that are already camelCase', () => {
+      const input = `model User {
+  userName String @map("user_name")
+  emailAddress String @map("email_address")
+}`
+      // 이미 camelCase라면 변환 안함
+      expect(convertPrismaSchema(input)).toBe(input)
+    })
+
     it('should preserve comments', () => {
       const input = `model User {
   user_name String // 사용자 이름
