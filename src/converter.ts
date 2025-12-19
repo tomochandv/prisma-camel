@@ -1,9 +1,10 @@
-import { toCamelCase, isSnakeCase } from './utils'
+import { toCamelCase, toPascalCase, isSnakeCase } from './utils'
 
 /**
  * @map() 안의 내용은 제외하고 나머지 부분의 snake_case를 camelCase로 변환
+ * 타입 참조(첫 번째 단어)는 PascalCase로, 배열/속성 내부는 camelCase로 변환
  */
-function convertRestExcludingMapContent(rest: string): string {
+function convertRestExcludingMapContent(rest: string, isFirstWord = true): string {
   // @map("...") 부분을 찾아서 보호
   const mapRegex = /@map\s*\(\s*"[^"]*"\s*\)/g
   const mapMatches: string[] = []
@@ -12,12 +13,39 @@ function convertRestExcludingMapContent(rest: string): string {
     return `__MAP_PLACEHOLDER_${mapMatches.length - 1}__`
   })
 
-  // @map() 밖의 snake_case를 camelCase로 변환
+  // @relation(...) 안의 내용도 보호 (여기서는 모두 camelCase)
+  const relationRegex = /@relation\s*\([^)]*\)/g
+  const relationMatches: string[] = []
+  result = result.replace(relationRegex, match => {
+    // @relation 안에서는 모두 camelCase로 변환
+    const convertedRelation = match.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, m => {
+      if (isSnakeCase(m)) {
+        return toCamelCase(m)
+      }
+      return m
+    })
+    relationMatches.push(convertedRelation)
+    return `__RELATION_PLACEHOLDER_${relationMatches.length - 1}__`
+  })
+
+  // 첫 번째 단어(타입)는 PascalCase로, 배열 내부는 camelCase로 변환
+  let isFirst = isFirstWord
   result = result.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, match => {
     if (isSnakeCase(match)) {
-      return toCamelCase(match)
+      const converted = isFirst ? toPascalCase(match) : toCamelCase(match)
+      isFirst = false
+      return converted
+    }
+    // snake_case가 아니어도 첫 단어 플래그는 업데이트
+    if (/^[a-zA-Z]/.test(match)) {
+      isFirst = false
     }
     return match
+  })
+
+  // @relation() 부분 복원
+  relationMatches.forEach((relationContent, index) => {
+    result = result.replace(`__RELATION_PLACEHOLDER_${index}__`, relationContent)
   })
 
   // @map() 부분 복원
@@ -35,6 +63,8 @@ export function convertPrismaSchema(schema: string): string {
   const lines = schema.split('\n')
   const convertedLines: string[] = []
   let currentBlock: 'model' | 'enum' | 'type' | 'generator' | 'datasource' | null = null
+  let currentModelOriginalName: string | null = null
+  let modelNeedsMap = false
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i]
@@ -55,16 +85,40 @@ export function convertPrismaSchema(schema: string): string {
 
     // 블록 종료 감지
     if (trimmed === '}') {
+      // 모델 블록이 끝날 때 @@map 추가
+      if (currentBlock === 'model' && modelNeedsMap && currentModelOriginalName) {
+        // 이미 @@map이 있는지 확인 (현재 모델 블록 내에서만)
+        let modelStartIndex = -1
+        for (let j = convertedLines.length - 1; j >= 0; j--) {
+          if (convertedLines[j].trim().startsWith('model ')) {
+            modelStartIndex = j
+            break
+          }
+        }
+        const currentModelLines = modelStartIndex >= 0 ? convertedLines.slice(modelStartIndex) : []
+        const hasExistingMap = currentModelLines.some(l => l.trim().startsWith('@@map('))
+
+        if (!hasExistingMap) {
+          // 마지막 줄의 인덴트를 찾기
+          const indent = line.match(/^(\s*)/)?.[1] || ''
+          // } 앞에 @@map 추가
+          convertedLines.push(`${indent}  @@map("${currentModelOriginalName}")`)
+        }
+      }
       currentBlock = null
+      currentModelOriginalName = null
+      modelNeedsMap = false
     }
 
-    // 모델 이름 변환 (model user_profile -> model userProfile)
+    // 모델 이름 변환 (model user_profile -> model UserProfile)
     if (trimmed.startsWith('model ')) {
       const modelMatch = line.match(/^(\s*model\s+)([a-zA-Z_][a-zA-Z0-9_]*)(\s*{?)$/)
       if (modelMatch) {
         const [, prefix, modelName, suffix] = modelMatch
         if (isSnakeCase(modelName)) {
-          convertedLines.push(`${prefix}${toCamelCase(modelName)}${suffix}`)
+          currentModelOriginalName = modelName
+          modelNeedsMap = true
+          convertedLines.push(`${prefix}${toPascalCase(modelName)}${suffix}`)
           continue
         }
       }

@@ -2,12 +2,13 @@ import { convertPrismaSchema } from '../src/converter'
 
 describe('convertPrismaSchema', () => {
   describe('모델 이름 변환', () => {
-    it('should convert snake_case model names to camelCase', () => {
+    it('should convert snake_case model names to PascalCase and add @@map', () => {
       const input = `model user_profile {
   id Int @id
 }`
-      const expected = `model userProfile {
+      const expected = `model UserProfile {
   id Int @id
+  @@map("user_profile")
 }`
       expect(convertPrismaSchema(input)).toBe(expected)
     })
@@ -20,12 +21,14 @@ describe('convertPrismaSchema', () => {
 model blog_post {
   id Int @id
 }`
-      const expected = `model userProfile {
+      const expected = `model UserProfile {
   id Int @id
+  @@map("user_profile")
 }
 
-model blogPost {
+model BlogPost {
   id Int @id
+  @@map("blog_post")
 }`
       expect(convertPrismaSchema(input)).toBe(expected)
     })
@@ -116,14 +119,16 @@ model blog_post {
   id Int @id
   author user_profile
 }`
-      const expected = `model userProfile {
+      const expected = `model UserProfile {
   id Int @id
-  posts blogPost[]
+  posts BlogPost[]
+  @@map("user_profile")
 }
 
-model blogPost {
+model BlogPost {
   id Int @id
-  author userProfile
+  author UserProfile
+  @@map("blog_post")
 }`
       expect(convertPrismaSchema(input)).toBe(expected)
     })
@@ -157,9 +162,10 @@ model blogPost {
   author_id Int
   author user_profile @relation(fields: [author_id], references: [id])
 }`
-      const expected = `model blogPost {
+      const expected = `model BlogPost {
   authorId Int @map("author_id")
-  author userProfile @relation(fields: [authorId], references: [id])
+  author UserProfile @relation(fields: [authorId], references: [id])
+  @@map("blog_post")
 }`
       expect(convertPrismaSchema(input)).toBe(expected)
     })
@@ -231,19 +237,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model userProfile {
+model UserProfile {
   id              Int      @id @default(autoincrement())
   userName       String @map("user_name")
   emailAddress   String   @unique @map("email_address")
   createdAt      DateTime @default(now()) @map("created_at")
-  posts           blogPost[]
+  posts           BlogPost[]
+  @@map("user_profile")
 }
 
-model blogPost {
+model BlogPost {
   id              Int      @id @default(autoincrement())
   postTitle      String @map("post_title")
   authorId       Int @map("author_id")
-  author          userProfile @relation(fields: [authorId], references: [id])
+  author          UserProfile @relation(fields: [authorId], references: [id])
+  @@map("blog_post")
 }
 
 enum userRole {
@@ -262,10 +270,11 @@ enum userRole {
 
   user_name String
 }`
-      const expected = `model userProfile {
+      const expected = `model UserProfile {
   id Int @id
 
   userName String @map("user_name")
+  @@map("user_profile")
 }`
       expect(convertPrismaSchema(input)).toBe(expected)
     })
@@ -327,10 +336,11 @@ datasource db {
   provider = "mysql"
 }
 
-model userProfile {
+model UserProfile {
   id              Int      @id @default(autoincrement())
   userName       String @map("user_name")
   emailAddress   String   @unique @map("email_address")
+  @@map("user_profile")
 }`
 
       expect(convertPrismaSchema(input)).toBe(expected)
