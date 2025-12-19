@@ -1,0 +1,58 @@
+{
+  "name": "@tomochanshim/prisma-camel",
+  "version": "1.0.0",
+  "description": "Convert Prisma schema snake_case to camelCase",
+  "license": "MIT",
+  "author": "tomochsn shim",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "prisma-camel": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "prisma",
+    "schema",
+    "camelCase",
+    "snake_case",
+    "converter",
+    "prisma-tools"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomochanshim/prisma-camel.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@tsconfig/node22": "^22.0.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "jest": "^30.2.0",
+    "prettier": "^3.7.4",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
