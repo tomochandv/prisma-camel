@@ -177,7 +177,7 @@ export function convertPrismaSchema(schema: string): string {
       const scalarTypes = ['String', 'Boolean', 'Int', 'BigInt', 'Float', 'Decimal', 'DateTime', 'Json', 'Bytes', 'Unsupported']
 
       // 타입 추출: "Type", "Type?", "Type[]" 형태에서 Type 부분만
-      const typeMatch = rest.match(/^\s+([A-Z][a-zA-Z0-9_]*)[?[\]]?/)
+      const typeMatch = rest.match(/^\s+([A-Z][a-zA-Z0-9_]*)(\[\]|\?)?/)
       const fieldType = typeMatch ? typeMatch[1] : null
 
       // 스칼라 타입이 아니면 관계 필드

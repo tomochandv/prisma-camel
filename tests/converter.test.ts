@@ -145,6 +145,21 @@ model BlogPost {
       expect(convertPrismaSchema(input)).toBe(expected)
     })
 
+    it('should not add @map to relation array fields with snake_case names', () => {
+      const input = `model user_info {
+  user_idx Int @id
+  api_token_info ApiTokenInfo[]
+  user_token UserToken[]
+}`
+      const expected = `model UserInfo {
+  userIdx Int @id @map("user_idx")
+  apiTokenInfo ApiTokenInfo[]
+  userToken UserToken[]
+  @@map("user_info")
+}`
+      expect(convertPrismaSchema(input)).toBe(expected)
+    })
+
     it('should handle complex relation with map parameter', () => {
       const input = `model UserBrowserFingerprint {
   user_idx Int
